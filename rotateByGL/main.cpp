@@ -15,12 +15,13 @@
 #include <cstdlib>
 #include <ctime>
 
-const float CAMERA_MOVE_INC = 0.2;
+const float CAMERA_MOVE_INC = 0.02;
 const float CAMERA_ZOOM_FACTOR = 1.5;
 const float CAMERA_ROTATE_FACTOR = 2;
 
 Camera* camera = new Camera();
 
+bool firstFrame=true;
 
 bool showGrid = true;
 bool debugMode = true;
@@ -32,9 +33,9 @@ int	 camRotU = 0;
 int	 camRotV = 0;
 int	 camRotW = 0;
 int  viewAngle = 45;
-float eyeX = 0;
-float eyeY = 0.5;
-float eyeZ = 5;
+float eyeX = .45;
+float eyeY = 0;
+float eyeZ = 2.1;
 float lookX = 0;
 float lookY = 0;
 float lookZ = -1;
@@ -44,8 +45,12 @@ Vector upV(0, 1, 0);
 Point eyeP(eyeX, eyeY, eyeZ);
 float clipNear = 0.001;
 float clipFar = 30;
-std::ostream& operator<<(std::ostream& os,Point& p){
+std::ostream& operator<<(std::ostream& os,const Point& p){
     os<<"{"<<p[0]<<","<<p[1]<<","<<p[2]<<"}";
+    return os;
+}
+std::ostream& operator<<(std::ostream& os,const Vector& v){
+    os<<"{"<<v[0]<<","<<v[1]<<","<<v[2]<<"}";
     return os;
 }
 
@@ -75,7 +80,6 @@ Vector getFace(const Vector& lookV,const Vector& x=Vector(1,0,0),const Vector& y
         if(i!=maxNdx) toReturn[i]=0;
         else toReturn[i]/=abs[i];
     }
-    //toReturn.negate();
     return toReturn;
 }
 
@@ -114,23 +118,26 @@ void myGlutDisplay(void){
     glLoadIdentity();
     Matrix projection = camera->GetProjectionMatrix();
     glMultMatrixd(projection.unpack());
-    
-    
+
+
     glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
+    Matrix modelViewInv = camera->GetInverseModelViewMatrix();
+    glMultMatrixd(modelViewInv.unpack());
+    if(firstFrame){
+        glLoadIdentity();
+    }
     camera->Orient(eyeP, lookV, upV);
-    glRotatef(rotation[0],1,0,0);
     camera->RotateV(camRotV);
-    camera->RotateU(rotation[1]);
+    camera->RotateU(camRotU);
     camera->RotateW(camRotW);
     Matrix modelView = camera->GetModelViewMatrix();
     glMultMatrixd(modelView.unpack());
+    glutPostRedisplay();
+    if(firstFrame){
+        firstFrame=false;
+        glRotatef(12,0,1,0);
+    }
     
-    
-    //camera->RotateV(-camRotV);
-    //camera->RotateU(-camRotU);
-    //camera->RotateW(-camRotW);
     
     if(debugMode){
         //TODO: fix text display
@@ -138,14 +145,21 @@ void myGlutDisplay(void){
         draw_grid();
         //drawing the axes
         glDisable(GL_LIGHTING);
-        glLineWidth(4);
+        glLineWidth(2);
         glBegin(GL_LINES);
-        glColor3f(1.0, 0.0, 0.0);
-        glVertex3f(0, 0, 0); glVertex3f(1.0, 0, 0);
-        glColor3f(0.0, 1.0, 0.0);
-        glVertex3f(0, 0, 0); glVertex3f(0.0, 1.0, 0);
-        glColor3f(0.0, 0.0, 1.0);
-        glVertex3f(0, 0, 0); glVertex3f(0, 0, 1.0);
+        double wag=.02;
+        for(double k=.1;k<1;k+=.1){
+            for(int i=-1;i<2;i++){
+                for(int j=-1;j<2;j++){
+                    glColor3f(1.0, 0.0, 0.0);
+                    glVertex3f(0, 0, 0); glVertex3f(1, k*wag*i, k*wag*j);
+                    glColor3f(0.0, 1.0, 0.0);
+                    glVertex3f(0, 0, 0); glVertex3f(k*wag*i, 1, k*wag*j);
+                    glColor3f(0.0, 0.0, 1.0);
+                    glVertex3f(0, 0, 0); glVertex3f(k*wag*i, k*wag*j, 1);
+                }
+            }
+        }
         glEnd();
         glLineWidth(1);
         glEnable(GL_LIGHTING);
@@ -189,6 +203,14 @@ void myGlutDisplay(void){
     
     glColor3f(0,0,0);
     glutSolidCube(20);
+    glColor3f(.5,.5,.5);
+    glPushMatrix();
+    glLoadIdentity();
+    glScalef(1,2,1);
+    glTranslatef(1,0,-3);
+    glRotatef(-10,0,1,0);
+    glutSolidCube(1);
+    glPopMatrix();
     glutSwapBuffers();
     glutPostRedisplay();
 
@@ -199,40 +221,10 @@ void increment(int axis,int value){
     rotation[axis]=v;
 }
 void myKeyboardSpecFunc(int key, int x, int y){
-    int inc=1;
-    if(key==GLUT_KEY_UP){
-        increment(0,inc);
-        if(!lastRotateOnX) lastRotateOnX=true;
-    }
-    if(key==GLUT_KEY_DOWN){
-        increment(0,-inc);
-        if(!lastRotateOnX) lastRotateOnX=true;
-    }
-
-    int otherAxis=1;
-    //if((rotation[0]<45||rotation[0]>315||(rotation[0]>135&&rotation[0]<225))){
-        //otherAxis=1;
-    //}
-    //if(otherAxis==2&&((rotation[1]>45&&rotation[1]<135)||(rotation[1]>225&&rotation[1]<315))){
-        //printf("was rotating on 2 now back on 1  ");
-        //otherAxis=1;
-    //}
-    //else{
-        //printf("                                 ");
-    //}
-    if(key==GLUT_KEY_LEFT){
-        increment(otherAxis,inc);
-        if(lastRotateOnX) lastRotateOnX=false;
-    }
+    std::cout<<camera->getV()<<std::endl;
     if(key==GLUT_KEY_RIGHT){
-        increment(otherAxis,-inc);
-        if(lastRotateOnX) lastRotateOnX=false;
+        //GDB 1
     }
-    printf("{% 3d,% 3d,% 3d}",int(rotation[0]),int(rotation[1]),int(rotation[2]));
-    printf(" rotating on axis %d",otherAxis);
-    printf("\n");
-    
-    glutPostRedisplay();
 }
 
 void myKeyboardFunc(unsigned char key, int x, int y){
@@ -249,22 +241,49 @@ void myKeyboardFunc(unsigned char key, int x, int y){
      + - zoom in
      - - zoom out
      */
+    int steps=45;
+    int inc=90/steps;
     switch(key){
-        case '0': debugMode = (debugMode)? false:true;
-            break;
-
-        case 'i': camRotU+=CAMERA_ROTATE_FACTOR;
-            break;
-            
-        case 'k': camRotU-=CAMERA_ROTATE_FACTOR;
+        case 'i': 
+            for(int i=0;i<steps;i++){
+                glRotatef(inc,1,0,0);
+                myGlutDisplay();
+            }
             break;
             
-        case 'j': camRotV+=CAMERA_ROTATE_FACTOR;
+        case 'k': 
+            for(int i=0;i<steps;i++){
+                glRotatef(-inc,1,0,0);
+                myGlutDisplay();
+            }
             break;
             
-        case 'l': camRotV-=CAMERA_ROTATE_FACTOR;
+        case 'j': 
+            for(int i=0;i<steps;i++){
+                glRotatef(inc,0,1,0);
+                myGlutDisplay();
+            }
             break;
             
+        case 'l': 
+            for(int i=0;i<steps;i++){
+                glRotatef(-inc,0,1,0);
+                myGlutDisplay();
+            }
+            break;
+            
+        case 'u': 
+            for(int i=0;i<steps;i++){
+                glRotatef(inc,0,0,1);
+                myGlutDisplay();
+            }
+            break;
+        case 'o': 
+            for(int i=0;i<steps;i++){
+                glRotatef(-inc,0,0,1);
+                myGlutDisplay();
+            }
+            break;
         case 'w': eyeP[1] += CAMERA_MOVE_INC;
             break;
             

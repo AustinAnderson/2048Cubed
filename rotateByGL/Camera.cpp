@@ -115,6 +115,17 @@ Matrix Camera::GetModelViewMatrix() {
     return M*trans_eye;
 }
 
+Matrix Camera::GetInverseModelViewMatrix() {
+    Matrix M(u[0], v[0], w[0], 0,
+             u[1], v[1], w[1], 0,
+             u[2], v[2], w[2], 0,
+                0,    0,    0, 1);
+    
+    Matrix trans_eye = trans_mat(Vector(eye[0],eye[1],eye[2]));
+    
+    return trans_eye*M;
+}
+
 void Camera::RotateV(double angle) {
     double theta = DEG_TO_RAD(angle);
     Matrix rotateVtheta = rot_mat(v, theta);

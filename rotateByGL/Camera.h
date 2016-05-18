@@ -18,6 +18,7 @@ public:
 
     Matrix GetProjectionMatrix();
     Matrix GetModelViewMatrix();
+    Matrix GetInverseModelViewMatrix();
     Matrix GetOrthographicProjection();
 
     void RotateV(double angle);
