@@ -1,0 +1,5 @@
+#!/bin/bash
+if make ;then
+./runWithBreaks ./Prog;
+fi;
+exit 0;
