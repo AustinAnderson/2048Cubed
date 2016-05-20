@@ -9,6 +9,8 @@
   ...
 *********************************************************************/
 InternalGrid::InternalGrid(){
+    srand(time(0));
+    int InitCellNumber=8;
     grid.clear();
     vector<vector<InternalCell> > l2;
     vector<InternalCell> l1;
@@ -23,7 +25,9 @@ InternalGrid::InternalGrid(){
         grid.push_back(l2);
         l2.clear();
     }
-
+    for(int i=0;i<InitCellNumber;i++){
+        addRandomCell();
+    }
 }
 
 /*******************************************************************************
@@ -111,3 +115,47 @@ void InternalGrid::addRandomCell(){
     }
 }
 
+void InternalGrid::debugDisplay(){
+    //fill each display in slices along the z axis
+    vector<vector<string> > displays(4,vector<string>(4,""));
+    vector<string> bottoms(4,"");
+    char buffer[256];
+    for(int z=0;z<4;z++){
+        for(int y=0;y<4;y++){
+            for(int x=0;x<4;x++){
+                sprintf(buffer,"|{%d,%d,%d} %3d",grid[x][y][z][0],grid[x][y][z][1],grid[x][y][z][2],grid[x][y][z].getValue());
+                string add(buffer);
+                displays[z][y]+=add;
+                if(z<2){
+                    bottoms[y]+="|";
+                    bottoms[y]+=string(add.size()-1,'_');
+                }
+            }
+            if(z<2)bottoms[y]+="|  ";
+        }
+    }
+    //merge them to display side by side
+    vector<string> finalDisplay(4,"");
+    vector<string> finalDisplay2(4,"");
+    cout<<bottoms[0]<<endl;
+    for(int y=0;y<4;y++){
+        for(int z=0;z<2;z++){
+            finalDisplay[y]+=displays[z][y];
+            finalDisplay[y]+="|  ";
+        }
+        cout<<finalDisplay[y]<<endl;
+        cout<<bottoms[y]<<endl;
+    }
+    cout<<bottoms[0]<<endl;
+    for(int y=0;y<4;y++){
+        for(int z=2;z<4;z++){
+            finalDisplay2[y]+=displays[z][y];
+            finalDisplay2[y]+="|  ";
+        }
+        cout<<finalDisplay2[y]<<endl;
+        cout<<bottoms[y]<<endl;
+    }
+
+
+
+}
