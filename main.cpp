@@ -1,15 +1,16 @@
 //
 //  main.cpp
-//  GraphicsFinal
+//  2048Cubed
 //
 //
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <GL/glui.h>
 
 #include "Camera.h"
+#include "GridCube.h"
+#include "prototyes.h"
 #include <iostream>
 #include <vector>
 #include <cstdlib>
@@ -18,6 +19,8 @@
 const float CAMERA_MOVE_INC = 0.02;
 const float CAMERA_ZOOM_FACTOR = 1.5;
 const float CAMERA_ROTATE_FACTOR = 2;
+
+GridCube gridCube;
 
 Camera* camera = new Camera();
 
@@ -164,35 +167,8 @@ void myGlutDisplay(void){
         glLineWidth(1);
         glEnable(GL_LIGHTING);
     }
-    int ndxs[3];
-    for(ndxs[0]=0;ndxs[0]<4;ndxs[0]++){
-        for(ndxs[1]=0;ndxs[1]<4;ndxs[1]++){
-            for(ndxs[2]=0;ndxs[2]<4;ndxs[2]++){
-                glPushMatrix();
-                for(int i=0;i<3;i++){
-                    if(ndxs[i]==3){
-                        if(0==i&&2==ndxs[1]&&2==ndxs[2]){
-                            glColor3f(1,0,0);
-                        }
-                        if(1==i&&2==ndxs[0]&&2==ndxs[2]){
-                            glColor3f(0,1,0);
-                        }
-                        if(2==i&&2==ndxs[0]&&2==ndxs[1]){
-                            glColor3f(0,1,1);
-                        }
-                    }
-                    else if(ndxs[i]==0){
-                        if(0==i&&2==ndxs[1]&&2==ndxs[2]){
-                            glColor3f(1,0,1);
-                        }
-                        if(1==i&&2==ndxs[0]&&2==ndxs[2]){
-                            glColor3f(1,1,0);
-                        }
-                        if(2==i&&2==ndxs[0]&&2==ndxs[1]){
-                            glColor3f(1,1,1);
-                        }
-                    }
-                }
+    gridCube.draw();
+    /*
                 glTranslatef(ndxs[0]*.25-.375,ndxs[1]*.25-.375,ndxs[2]*.25-.375);
                 glutSolidCube(.125);
                 glColor3f(0,0,1);
@@ -200,6 +176,8 @@ void myGlutDisplay(void){
             }
         }
     }
+    */
+    ///
     
     glColor3f(0,0,0);
     glutSolidCube(20);
